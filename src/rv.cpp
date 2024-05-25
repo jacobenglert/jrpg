@@ -97,31 +97,39 @@ double rltgamma(double shape, double rate, double lower) {
   double a = shape;
   double b = rate * lower;
 
-  if (lower <= 0)
+  if (lower <= 0) {
     return 0;
+  }
 
-  if (shape < 1)
+  if (shape < 1) {
     return 0;
+  }
 
-  if (shape == 1)
+  if (shape == 1) {
     return exprnd(1.0) / rate + lower;
+  }
+
 
   double d1 = b - a;
   double d2 = a - 1;
   double c0 = 0.5 * (d1 + sqrt(d1*d1 + 4*b)) / b;
   double d3 = 1 - c0;
 
-  double x = 0.0;
-  while (true) {
-    x = exprnd(1.0) * c0 + lower;
-    double log_rho = d2 * log(d2) - x * d3;
+  double X = 0.0;
+  bool accept = false;
+  while (!accept) {
+    X = exprnd(1.0) / c0 + b;
+    double log_rho = d2 * log(X) - X * d3;
     double log_M = d2 * log(d2 / d3) - d2;
 
-    if (log(R::runif(0.0,1.0)) <= (log_rho - log_M))
-      break;
+    double u = R::runif(0.0, 1.0);
+    accept = log(u) <= (log_rho - log_M);
+
+    // if (log(R::runif(0.0,1.0)) <= (log_rho - log_M))
+    //   break;
   }
 
-  return lower * x / b;
+  return lower * X / b;
 }
 
 // Right-truncated inverse-gamma(shape, scale, upper) random variates
@@ -196,25 +204,3 @@ double pinvgauss(double x, double mu, double lambda) {
 
   return y;
 }
-
-
-
-// Function templates to code up
-
-
-// Try using R::exp() instead of exprnd.
-
-
-// // random inverse gaussian from BayesLogit
-// double igauss(double mu, double lambda)
-// {
-//   // See R code for specifics.
-//   double mu2 = mu * mu;
-//   double Y = norm(0.0, 1.0);
-//   Y *= Y;
-//   double W = mu + 0.5 * mu2 * Y / lambda;
-//   double X = W - sqrt(W*W - mu2);
-//   if (unif() > mu / (mu + X))
-//     X = mu2 / X;
-//   return X;
-// }

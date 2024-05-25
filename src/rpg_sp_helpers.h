@@ -31,10 +31,10 @@ struct Line {
   double intercept;
 };
 
-// double tangent_to_eta(double x, double z, double mid, Line t1);
-// double phi_func(double x, double z, FD phi);
-// double delta_func(double x, double mid, FD delta);
-// double cos_rt(double v);
-// double sp_approx(double, double, double);
+void tangent_to_eta(double x, double z, double mid, Line& t1);
+void phi_func(double x, double xc, FD& phi);
+void delta_func(double x, double z, FD& delta);
+double cos_rt(double v);
+double sp_approx(double, double, double);
 
 #endif

@@ -25,6 +25,7 @@
 
 #include <RcppArmadillo.h>
 #include "rpg.h"
+#include "rpg_sp_helpers.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -48,6 +49,22 @@ arma::vec jrpg(arma::vec b, arma::vec z) {
 
       // Normal approximation
       y(i) = rpg_na(b(i), z(i));
+
+    } else if (b(i) > 13) {
+
+      y(i) = rpg_sp(b(i), z(i), 5000);
+
+      if (y(i) == -999) {
+        // Devroye method
+        int bint = std::floor(b(i));
+        y(i) = 0.0;
+        y(i) += rpg_devroye(bint, z(i));
+
+        // Add sum of gammas to cover remainder
+        if (b(i) > bint) {
+          y(i) += rpg_gamma(b(i) - bint, z(i));
+        }
+      }
 
     } else if (b(i) >= 1) {
 
@@ -183,92 +200,101 @@ double rpg_gamma(double b, double z) {
   return 0.25 * sum;
 }
 
-// // Saddlepoint Approximation Method
-// // Usage Case: 13 < b < 170
-// double rpg_sp(double b, double z, int maxiter = 2000) {
-//
-//   if (b < 1) {
-//     stop("Saddlepoint approximation only valid for b >= 1.");
-//   }
-//
-//   z = 0.5 * fabs(z);
-//
-//   // Select reference points
-//   double xl = y_eval(-1*z*z);   // Left point (mode of phi)
-//   double xc = 1.1*xl;                    // Mid point
-//   double xr = 1.2*xl;                    // Right point
-//
-//   // Calculate inflation constants
-//   // I have no idea how this works - borrowed directly from BayesLogit
-//   double vxc  = v_eval(xc);
-//   double K2xc = 0.0;
-//
-//   if (fabs(vxc) >= 1e-6)
-//     K2xc = xc*xc + (1-xc) / vxc;
-//   else
-//     K2xc = xc*xc - 1/3 - (2/15) * vxc;
-//
-//   double xc2 = xc * xc;
-//   double al = xc2*xc / K2xc;
-//   double ar = xc2    / K2xc;
-//
-//   // Calculate left and right tangent lines (slopes and intercepts)
-//   Line Ll, Lr;
-//   tangent_to_eta(xl, z, xc, Ll);
-//   tangent_to_eta(xr, z, xc, Lr);
-//
-//   // Extract slopes and intercepts
-//   double rho_l = -1.0 * Ll.slope;
-//   double rho_r = -1.0 * Lr.slope;
-//   double b_l = Ll.intercept;
-//   double b_r = Lr.intercept;
-//
-//   // Constants
-//   double lcn = 0.5 * log(0.5 * b / MATH_PI);
-//   double sqrt_rho_l = sqrt(2 * rho_l);
-//
-//   // (Error in BayesLogit? Changed to -0.5 * log(a) in both and + b * log(xc) in k_r)
-//   double k_l = exp(0.5 * log(al) + b * (0.5 * 1.0 / xc + b_l - sqrt_rho_l));
-//   double k_r = exp(lcn + 0.5 * log(ar) + b * (log(xc) + b_r - log(b * rho_r)) + lgamma(b));
-//
-//   // Weights
-//   double w_l = k_l * pinvgauss(xc, 1.0 / sqrt_rho_l, b);
-//   double w_r = k_r * R::pgamma(xc, b, 1.0 / (b * rho_r), false, false);
-//   double p_l = w_l / (w_l + w_r);
-//
-//   // Sample
-//   int iter = 0;
-//   double x = 2.0;
-//   double k = 0.0;
-//   while (true && iter < maxiter) {
-//
-//     iter++;
-//
-//     double phi_ev;
-//     if (R::runif(0.0,1.0) <= w_l) {
-//
-//       // Generate from right truncated inverse Gaussian
-//       x = rtinvgauss(1.0 / sqrt_rho_l, b, xc);
-//       phi_ev = b * (b_l - b_r * x) + 0.5 * b * ((1.0 - 1.0 / x) - (1.0 - 1.0 / xc));
-//       k = exp(0.5 * log(al) + lcn - 1.5 * log(x) + phi_ev);
-//
-//     }
-//     else {
-//
-//       // Generate from left-truncated gamma
-//       x = ltgamma(b, b * rho_r, xc);
-//       phi_ev = b * (b_r - rho_r * x) + b * (log(x) - log(xc));
-//       k = exp(0.5 * log(ar) + lcn + phi_ev) / x;
-//
-//     }
-//
-//     double spa = sp_approx(x, b, z);
-//
-//     if (k * R::runif(0.0,1.0) < spa)
-//       break;
-//
-//   }
-//
-//   return b * 0.25 * x;
-//
-// }
+// Saddlepoint Approximation Method
+// Usage Case: 13 < b < 170
+double rpg_sp(double b, double z, int maxiter = 2000) {
+
+  if (b < 1) {
+    stop("Saddlepoint approximation only valid for b >= 1.");
+  }
+
+  z = 0.5 * fabs(z);
+
+  // Select reference points
+  double xl = y_eval(-1*z*z);   // Left point (mode of phi)
+  double xc = 1.1 * xl;                    // Mid point
+  double xr = 1.2 * xl;                    // Right point
+
+  // Calculate inflation constants
+  // I have no idea how this works - borrowed directly from BayesLogit
+  double vxc  = v_eval(xc);
+  double K2xc = 0.0;
+
+  if (fabs(vxc) >= 1e-6)
+    K2xc = xc*xc + (1-xc) / vxc;
+  else
+    K2xc = xc*xc - 1/3 - (2/15) * vxc;
+
+  double xc2 = xc * xc;
+  double al = xc2*xc / K2xc;
+  double ar = xc2    / K2xc;
+
+  // Calculate left and right tangent lines (slopes and intercepts)
+  Line Ll, Lr;
+  tangent_to_eta(xl, z, xc, Ll);
+  tangent_to_eta(xr, z, xc, Lr);
+
+  // Extract slopes and intercepts
+  double rho_l = -1.0 * Ll.slope;
+  double rho_r = -1.0 * Lr.slope;
+  double b_l = Ll.intercept;
+  double b_r = Lr.intercept;
+
+  // Constants
+  double lcn = 0.5 * log(0.5 * b / MATH_PI);
+  double sqrt_rho_l = sqrt(2 * rho_l);
+
+  double k_l, k_r, w_l, w_r, p_l;
+
+  // (Error in BayesLogit? Changed to -0.5 * log(a) in both and + b * log(xc) in k_r)
+  // double k_l = exp(0.5 * log(al) + b * (0.5 / xc + b_l - sqrt_rho_l));
+  k_l = exp(0.5 * log(al) - b * sqrt_rho_l + b * b_l + 0.5 * b * 1.0 / xc);
+  // k_r = exp(lcn + 0.5 * log(ar) - b * (log(xc) - b_r + log(b * rho_r)) + lgamma(b));
+  k_r = exp(0.5 * log(ar) + lcn + (- b * log(b * rho_r) + b * b_r - b * log(xc) + lgamma(b)));
+
+  // Weights
+  w_l = k_l * pinvgauss(xc, 1.0 / sqrt_rho_l, b);
+  w_r = k_r * (1.0 - R::pgamma(xc, b, 1.0 / (b * rho_r), true, false));
+  p_l = w_l / (w_l + w_r);
+
+  // Sample
+  int iter = 0;
+  double X = 2.0;
+  double k = 0.0;
+  bool go = true;
+  while (go && iter < maxiter) {
+
+    iter++;
+
+    double phi_ev;
+    if (R::runif(0.0,1.0) < p_l) {
+
+      // Generate from right truncated inverse Gaussian
+      X = rrtinvgauss(1.0 / sqrt_rho_l, b, xc);
+      phi_ev = b * (b_l - rho_l * X) + 0.5 * b * ((1.0 - 1.0 / X) - (1.0 - 1.0 / xc));
+      k = exp(0.5 * log(al) + lcn - 1.5 * log(X) + phi_ev);
+
+    }
+    else {
+
+      // Generate from left-truncated gamma
+      X = rltgamma(b, b * rho_r, xc);
+      phi_ev = b * (b_r - rho_r * X) + b * (log(X) - log(xc));
+      k = exp(0.5 * log(ar) + lcn + phi_ev) / X;
+
+    }
+
+    double spa = sp_approx(X, b, z);
+    if (spa == -999) return spa;
+
+
+    if (k * R::runif(0.0,1.0) < spa) go = false;
+
+    // if (k * R::runif(0.0,1.0) < spa)
+    //   break;
+
+  }
+
+  return b * 0.25 * X;
+
+}

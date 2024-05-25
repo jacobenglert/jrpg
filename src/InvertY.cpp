@@ -20,9 +20,6 @@ using namespace Rcpp;
 
 //------------------------------------------------------------------------------
 
-double y_eval(double v);
-
-
 // Compute tan(sqrt(x)) / sqrt(x)
 // Windle thesis Fact 2.19
 double y_eval(double v) {
@@ -43,8 +40,7 @@ double y_eval(double v) {
   return y;
 }
 
-void ydy_eval(double v, double* yp, double* dyp)
-{
+void ydy_eval(double v, double* yp, double* dyp) {
   // double r   = sqrt(fabs(v));
 
   double y = y_eval(v);
@@ -57,28 +53,24 @@ void ydy_eval(double v, double* yp, double* dyp)
 
 }
 
-double f_eval(double v, void * params)
-{
+double f_eval(double v, void * params) {
   double y = *((double*) params);
   return y_eval(v) - y;
 }
 
-void fdf_eval(double v, void* params, double* fp, double* dfp)
-{
+void fdf_eval(double v, void* params, double* fp, double* dfp) {
   double y = *((double*)params);
   ydy_eval(v, fp, dfp);
   *fp  -= y;
 }
 
-double df_eval(double v, void * params)
-{
+double df_eval(double v, void * params) {
   double f, df;
   ydy_eval(v, &f, &df);
   return df;
 }
 
-double v_eval(double y, double tol, int max_iter)
-{
+double v_eval(double y, double tol, int max_iter) {
   double ylower = ygrid[0];
   double yupper = ygrid[grid_size-1];
 
@@ -117,7 +109,8 @@ double v_eval(double y, double tol, int max_iter)
   }
 
   if (iter >= max_iter) {
-    stop("InvertY.cpp, v_eval: reached max_iter: %i\n", iter);
+    return -999;
+    // stop("InvertY.cpp, v_eval: reached max_iter: %i\n", iter);
   }
 
   return vnew;

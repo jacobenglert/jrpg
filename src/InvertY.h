@@ -31,7 +31,7 @@ double   f_eval(double v, void* params);
 double  df_eval(double v, void* params);
 void   fdf_eval(double v, void* params, double* fp, double* dfp);
 
-double v_eval(double y, double tol=1e-9, int max_iter=1000);
+double v_eval(double y, double tol=1e-9, int max_iter=2000);
 
 //------------------------------------------------------------------------------
 
