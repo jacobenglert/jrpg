@@ -109,8 +109,8 @@ double v_eval(double y, double tol, int max_iter) {
   }
 
   if (iter >= max_iter) {
-    return -999;
-    // stop("InvertY.cpp, v_eval: reached max_iter: %i\n", iter);
+    // return -999;
+    stop("InvertY.cpp, v_eval: reached max_iter: %i\n", iter);
   }
 
   return vnew;

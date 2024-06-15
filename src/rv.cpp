@@ -20,8 +20,8 @@
 
 // Generate exponential random variates
 double exprnd(double mu) {
-  return R::rexp(mu);
-  //return -mu * std::log(1.0 - R::runif(0.0,1.0));
+  // return R::rexp(mu);
+  return -mu * std::log(1.0 - R::runif(0.0,1.0));
 }
 
 // Generate inverse Gaussian (mu, 1) random variate
@@ -129,14 +129,15 @@ double rltgamma(double shape, double rate, double lower) {
     //   break;
   }
 
-  return lower * X / b;
+  return lower * (X / b);
 }
 
 // Right-truncated inverse-gamma(shape, scale, upper) random variates
 // is rrtinvchisquare(2*shape, t) if scale = 1/2 (in Devroye sampler shape = 1/2)
 // This is needed for the LHS of the saddlepoint approximation
 double rrtinvgamma(double shape, double scale, double upper) {
-  return 1.0 / rltgamma(shape, scale, 1.0 / upper);
+  double lower = 1.0 / (upper + 0.0001);
+  return 1.0 / rltgamma(shape, scale, lower);
 }
 
 
@@ -177,8 +178,11 @@ double rrtinvgauss(double mu, double lambda, double upper) {
     while (true) {
       u = R::runif(0.0, 1.0);
       // Sample right-truncated Inv-Gamma(1/2,lambda/2,upper)
-      X = rrtinvgamma(0.5, 0.5 * lambda, upper);
-      if (log(u) <= (-0.5 * lambda / mu / mu * X)) {
+      // X = rrtinvgamma(0.5, 0.5 * lambda, upper);
+      X = rrtinvgamma(0.5 * lambda, 0.5, upper);
+      //X = rrtinvchi2(lambda, upper);
+
+      if (log(u) <= (-0.5 * lambda / (mu * mu) * X)) {
         break;
       }
     }
@@ -195,7 +199,7 @@ double rrtinvgauss(double mu, double lambda, double upper) {
 // Evaluate CDF of inverse-Gaussian(mu, lambda)
 double pinvgauss(double x, double mu, double lambda) {
 
-  double z = 1 / mu;
+  double z = 1.0 / mu;
   double b = std::sqrt(lambda / x) * (x * z - 1);
   double a = std::sqrt(lambda / x) * (x * z + 1) * -1.0;
 
@@ -203,4 +207,53 @@ double pinvgauss(double x, double mu, double lambda) {
     exp(2 * lambda * z + R::pnorm(a, 0.0, 1.0, true, true));
 
   return y;
+}
+
+
+
+
+// TESTING
+
+double texpon_rate(double left, double rate){
+  // return left - log(unif()) / rate;
+  return exprnd(1.0/rate) + left;
+}
+
+double tnorm(double left) {
+  double rho, ppsl;
+
+  if (left < 0) { // Accept/Reject Normal
+    while (true) {
+      ppsl = R::rnorm(0.0, 1.0);
+      if (ppsl > left) return ppsl;
+    }
+  }
+  else { // Accept/Reject Exponential
+    // return tnorm_tail(left); // Use Devroye.
+    double astar = 0.5 * (left + sqrt(left*left + 4));
+    while (true) {
+      ppsl = texpon_rate(left, astar);
+      rho  = exp( -0.5 * (ppsl - astar) * (ppsl - astar) );
+      if (R::runif(0.0,1.0) < rho) return ppsl;
+    }
+  }
+
+}
+
+double rrtinvchi2(double scale, double trunc) {
+  double R = trunc / scale;
+  // double X = 0.0;
+  // // I need to consider using a different truncated normal sampler.
+  // double E1 = r.expon_rate(1.0); double E2 = r.expon_rate(1.0);
+  // while ( (E1*E1) > (2 * E2 / R)) {
+  //   // printf("E %g %g %g %g\n", E1, E2, E1*E1, 2*E2/R);
+  //   E1 = r.expon_rate(1.0); E2 = r.expon_rate(1.0);
+  // }
+  // // printf("E %g %g \n", E1, E2);
+  // X = 1 + E1 * R;
+  // X = R / (X * X);
+  // X = scale * X;
+  double E = tnorm(1/sqrt(R));
+  double X = scale / (E*E);
+  return X;
 }

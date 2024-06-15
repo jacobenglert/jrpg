@@ -25,7 +25,6 @@
 
 #include <RcppArmadillo.h>
 #include "rpg.h"
-#include "rpg_sp_helpers.h"
 
 // [[Rcpp::depends(RcppArmadillo)]]
 
@@ -52,19 +51,19 @@ arma::vec jrpg(arma::vec b, arma::vec z) {
 
     } else if (b(i) > 13) {
 
-      y(i) = rpg_sp(b(i), z(i), 5000);
+      y(i) = rpg_sp(b(i), z(i), 2000);
 
-      if (y(i) == -999) {
-        // Devroye method
-        int bint = std::floor(b(i));
-        y(i) = 0.0;
-        y(i) += rpg_devroye(bint, z(i));
-
-        // Add sum of gammas to cover remainder
-        if (b(i) > bint) {
-          y(i) += rpg_gamma(b(i) - bint, z(i));
-        }
-      }
+      // if (y(i) == -999) {
+      //   // Devroye method
+      //   int bint = std::floor(b(i));
+      //   y(i) = 0.0;
+      //   y(i) += rpg_devroye(bint, z(i));
+      //
+      //   // Add sum of gammas to cover remainder
+      //   if (b(i) > bint) {
+      //     y(i) += rpg_gamma(b(i) - bint, z(i));
+      //   }
+      // }
 
     } else if (b(i) >= 1) {
 
@@ -73,7 +72,7 @@ arma::vec jrpg(arma::vec b, arma::vec z) {
       y(i) = 0.0;
       y(i) += rpg_devroye(bint, z(i));
 
-      // Add sum of gammas to cover remainder
+      // Add sum of gammas to cover remainder (if necessary)
       if (b(i) > bint) {
         y(i) += rpg_gamma(b(i) - bint, z(i));
       }
@@ -231,8 +230,10 @@ double rpg_sp(double b, double z, int maxiter = 2000) {
 
   // Calculate left and right tangent lines (slopes and intercepts)
   Line Ll, Lr;
-  tangent_to_eta(xl, z, xc, Ll);
-  tangent_to_eta(xr, z, xc, Lr);
+  // tangent_to_eta(xl, z, xc, Ll);
+  // tangent_to_eta(xr, z, xc, Lr);
+  Ll = get_eta_tangent(xl, z, xc);
+  Lr = get_eta_tangent(xr, z, xc);
 
   // Extract slopes and intercepts
   double rho_l = -1.0 * Ll.slope;
@@ -244,18 +245,23 @@ double rpg_sp(double b, double z, int maxiter = 2000) {
   double lcn = 0.5 * log(0.5 * b / MATH_PI);
   double sqrt_rho_l = sqrt(2 * rho_l);
 
-  double k_l, k_r, w_l, w_r, p_l;
+  // if (fabs(z) > 1e16 && K2xc <= 0) {
+  //   return rrtinvgauss(1.0 / sqrt_rho_l, b, xc);
+  // }
+
+  double k_l, k_r, w_l, w_r, w_t, p_l;
 
   // (Error in BayesLogit? Changed to -0.5 * log(a) in both and + b * log(xc) in k_r)
-  // double k_l = exp(0.5 * log(al) + b * (0.5 / xc + b_l - sqrt_rho_l));
+  // k_l = exp(0.5 * log(al) + b * (0.5 / xc + b_l - sqrt_rho_l));
   k_l = exp(0.5 * log(al) - b * sqrt_rho_l + b * b_l + 0.5 * b * 1.0 / xc);
   // k_r = exp(lcn + 0.5 * log(ar) - b * (log(xc) - b_r + log(b * rho_r)) + lgamma(b));
-  k_r = exp(0.5 * log(ar) + lcn + (- b * log(b * rho_r) + b * b_r - b * log(xc) + lgamma(b)));
+  k_r = exp(0.5 * log(ar) + lcn + (- b * log(b * rho_r) + b * b_r - b * log(xc) + R::lgammafn(b)));
 
   // Weights
   w_l = k_l * pinvgauss(xc, 1.0 / sqrt_rho_l, b);
   w_r = k_r * (1.0 - R::pgamma(xc, b, 1.0 / (b * rho_r), true, false));
-  p_l = w_l / (w_l + w_r);
+  w_t = w_l + w_r;
+  p_l = w_l / w_t;
 
   // Sample
   int iter = 0;
@@ -285,10 +291,12 @@ double rpg_sp(double b, double z, int maxiter = 2000) {
     }
 
     double spa = sp_approx(X, b, z);
-    if (spa == -999) return spa;
+    /// if (spa == -999) return spa;
 
 
-    if (k * R::runif(0.0,1.0) < spa) go = false;
+    if (k * R::runif(0.0,1.0) < spa) {
+      go = false;
+    }
 
     // if (k * R::runif(0.0,1.0) < spa)
     //   break;

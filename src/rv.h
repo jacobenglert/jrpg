@@ -40,4 +40,10 @@ double rrtinvgauss(double mu, double lambda, double upper);
 double rrtinvgamma(double shape, double scale, double upper);
 
 
+
+// TESTING
+double texpon_rate(double left, double rate);
+double tnorm(double left);
+double rrtinvchi2(double scale, double trunc);
+
 #endif

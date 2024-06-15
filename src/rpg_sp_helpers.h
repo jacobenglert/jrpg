@@ -37,4 +37,12 @@ void delta_func(double x, double z, FD& delta);
 double cos_rt(double v);
 double sp_approx(double, double, double);
 
+FD get_phi(double, double);
+FD get_delta(double, double);
+Line get_eta_tangent(double, double, double);
+
+
+double logcosh(double x);
+double log_cos_rt(double v);
+
 #endif
