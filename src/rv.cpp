@@ -20,8 +20,8 @@
 
 // Generate exponential random variates
 double exprnd(double mu) {
-  // return R::rexp(mu);
-  return -mu * std::log(1.0 - R::runif(0.0,1.0));
+  return R::rexp(mu);
+  // return -mu * std::log(1.0 - R::runif(0.0,1.0));
 }
 
 // Generate inverse Gaussian (mu, 1) random variate
@@ -43,15 +43,25 @@ double rinvgauss(double mu) {
 // Similar to Windle (2013) algorithm 1
 double rinvgauss(double mu, double lambda) {
 
-  // Sample
-  double u = R::rnorm(0.0,1.0);
-  double v = u * u; // differs in that we square u
-  double X = mu * (1.0 + 0.5 * mu * v / lambda - 0.5 / lambda * sqrt(4.0*mu*lambda*v + mu*mu * v*v));
+  // // Sample
+  // double u = R::rnorm(0.0,1.0);
+  // double v = u * u; // differs in that we square u
+  // double X = mu * (1.0 + 0.5 * mu * v / lambda - 0.5 / lambda * sqrt(4.0*mu*lambda*v + mu*mu * v*v));
+  //
+  // if (R::runif(0.0,1.0) > mu / (mu + X))
+  //   return mu * mu / X;
+  // else
+  //   return X;
 
+  // BayesLogit
+  double mu2 = mu * mu;
+  double Y = R::rnorm(0.0, 1.0);
+  Y *= Y;
+  double W = mu + 0.5 * mu2 * Y / lambda;
+  double X = W - sqrt(W*W - mu2);
   if (R::runif(0.0,1.0) > mu / (mu + X))
-    return mu * mu / X;
-  else
-    return X;
+    X = mu2 / X;
+  return X;
 }
 
 // Left-truncated gamma(1/2,1/2,pi/2) random variates
@@ -130,6 +140,7 @@ double rltgamma(double shape, double rate, double lower) {
   }
 
   return lower * (X / b);
+
 }
 
 // Right-truncated inverse-gamma(shape, scale, upper) random variates
@@ -153,7 +164,19 @@ double rrtinvgauss(double mu, double upper){
     // Algorithm 3 in the Windle (2013) PhD thesis, page 128
     while (true) {
       u = R::runif(0.0, 1.0);
-      X = 1.0 / rltgamma(); // Draw right-truncated inverse gamma (1/2, 1/2, 2/PI)
+
+      // Rcpp_pgdraw
+      // X = 1.0 / rltgamma(); // Draw right-truncated inverse gamma (1/2, 1/2, 2/PI)
+
+      // X = rrtinvgamma_2(0.5, 0.5, MATH_2_PI);
+
+      // Borrowed from BayesLogit
+      double E1 = exprnd(1.0); double E2 = exprnd(1.0);
+      while ( E1*E1 > 2 * E2 / upper) {
+        E1 = exprnd(1.0); E2 = exprnd(1.0);
+      }
+      X = 1 + E1 * upper;
+      X = upper / (X * X);
 
       if (log(u) < (-0.5 / mu / mu * X)) {
         break;
@@ -179,8 +202,11 @@ double rrtinvgauss(double mu, double lambda, double upper) {
       u = R::runif(0.0, 1.0);
       // Sample right-truncated Inv-Gamma(1/2,lambda/2,upper)
       // X = rrtinvgamma(0.5, 0.5 * lambda, upper);
-      X = rrtinvgamma(0.5 * lambda, 0.5, upper);
-      //X = rrtinvchi2(lambda, upper);
+
+      X = rrtinvchi2(lambda, upper);
+
+      // X = rrtinvgamma_2(0.5, 0.5 * lambda, upper);
+      // X = rrtinvgamma(0.5 * lambda, 0.5, upper);
 
       if (log(u) <= (-0.5 * lambda / (mu * mu) * X)) {
         break;
@@ -194,6 +220,7 @@ double rrtinvgauss(double mu, double lambda, double upper) {
     }
   }
   return X;
+
 }
 
 // Evaluate CDF of inverse-Gaussian(mu, lambda)
@@ -215,7 +242,6 @@ double pinvgauss(double x, double mu, double lambda) {
 // TESTING
 
 double texpon_rate(double left, double rate){
-  // return left - log(unif()) / rate;
   return exprnd(1.0/rate) + left;
 }
 
@@ -229,7 +255,6 @@ double tnorm(double left) {
     }
   }
   else { // Accept/Reject Exponential
-    // return tnorm_tail(left); // Use Devroye.
     double astar = 0.5 * (left + sqrt(left*left + 4));
     while (true) {
       ppsl = texpon_rate(left, astar);
@@ -242,18 +267,17 @@ double tnorm(double left) {
 
 double rrtinvchi2(double scale, double trunc) {
   double R = trunc / scale;
-  // double X = 0.0;
-  // // I need to consider using a different truncated normal sampler.
-  // double E1 = r.expon_rate(1.0); double E2 = r.expon_rate(1.0);
-  // while ( (E1*E1) > (2 * E2 / R)) {
-  //   // printf("E %g %g %g %g\n", E1, E2, E1*E1, 2*E2/R);
-  //   E1 = r.expon_rate(1.0); E2 = r.expon_rate(1.0);
-  // }
-  // // printf("E %g %g \n", E1, E2);
-  // X = 1 + E1 * R;
-  // X = R / (X * X);
-  // X = scale * X;
-  double E = tnorm(1/sqrt(R));
+  double E = tnorm(1.0/sqrt(R));
   double X = scale / (E*E);
   return X;
 }
+
+// double rrtinvgamma_2(double shape, double scale, double trunc) {
+//
+//   double X = trunc - 1.0;
+//   double trunc_inv = 1.0 / trunc;
+//   while (X < trunc_inv) {
+//     X = R::rgamma(shape, scale);
+//   }
+//   return 1.0 / X;
+// }

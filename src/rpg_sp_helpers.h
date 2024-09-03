@@ -41,6 +41,7 @@ FD get_phi(double, double);
 FD get_delta(double, double);
 Line get_eta_tangent(double, double, double);
 
+double y_func(double v);
 
 double logcosh(double x);
 double log_cos_rt(double v);

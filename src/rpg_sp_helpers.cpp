@@ -3,23 +3,6 @@
 using namespace Rcpp;
 
 // Compute delta as per Lemma 14 / 2.22
-void delta_func(double x, double mid, FD& delta) {
-
-  if (x >= mid) {
-
-    // Compute the right side of delta
-    delta.val = log(x) - log(mid);
-    delta.der = 1.0 / x;
-
-  } else {
-
-    // Compute the left side of delta
-    delta.val = 0.5 * (1 - 1.0 / x) - 0.5 * (1 - 1.0 / mid);
-    delta.der = 0.5 / (x*x);
-
-  }
-}
-
 FD get_delta(double x, double mid) {
 
   FD delta;
@@ -42,21 +25,6 @@ FD get_delta(double x, double mid) {
 }
 
 // Find t(x) such that phi(x) = K(t) - tx
-void phi_func(double x, double z, FD& phi) {
-
-  // Determine the phi function by finding t(x)
-  double v = v_eval(x);       // 2u from paper
-  double u = 0.5 * v;         // u from paper
-  double t = u + 0.5 * z*z;   // t from paper
-
-  // Evaluate the phi function and its derivative at t(x)
-  phi.val = log(cosh(fabs(z))) - log(cos_rt(v)) - t * x; // Fact 9.4
-  phi.der = -1.0 * t; // Fact 9.5
-
-  // return v;
-
-}
-
 FD get_phi(double x, double z) {
 
   FD phi;
@@ -71,35 +39,10 @@ FD get_phi(double x, double z) {
   phi.val = logcosh(z) - log_cos_rt(v) - t*x;
   phi.der = -1.0 * t; // Fact 9.5
 
-  // return v;
-
   return phi;
 }
 
 // Calculate tangent line to eta
-void tangent_to_eta(double x, double z, double mid, Line& tl) {
-
-  FD phi, delta, eta;
-  // double v;
-
-  // Compute v and update phi in place
-  // v = phi_func(x, z, phi);
-  phi_func(x, z, phi);
-
-  // Compute and update delta in place
-  delta_func(x, mid, delta);
-
-  // Evaluate eta and its derivative at x
-  eta.val = phi.val - delta.val;
-  eta.der = phi.der - delta.der;
-
-  // Calculate and update slope/intercept for line
-  tl.slope = eta.der;
-  tl.intercept = eta.val - eta.der * x;
-
-  // return v;
-}
-
 Line get_eta_tangent(double x, double z, double mid) {
 
   Line L;
@@ -179,3 +122,22 @@ double log_cos_rt(double v) {
   else y = logcosh(r);
   return y;
 }
+
+double y_func(double v) {
+
+  double tol = 1e-6;
+  double y   = 0.0;
+  double r   = sqrt(fabs(v));
+
+  // If v > 0, compute directly
+  // If v < 0, compute using hyperbolic tangent
+  // If v close to 0, use a Taylor expansion around s = 0
+  if (v > tol)
+    y = tan(r) / r;
+  else if (v < -1*tol)
+    y = tanh(r) / r;
+  else
+    y = 1 + (1/3) * v + (2/15) * v * v + (17/315) * v * v * v;
+  return y;
+}
+

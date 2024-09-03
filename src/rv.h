@@ -46,4 +46,7 @@ double texpon_rate(double left, double rate);
 double tnorm(double left);
 double rrtinvchi2(double scale, double trunc);
 
+
+double rrtinvgamma_2(double shape, double scale, double trunc);
+
 #endif

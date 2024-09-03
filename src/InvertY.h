@@ -15,11 +15,10 @@
 // BayesLogit.  If not, see <https://www.gnu.org/licenses/>.
 
 
-
 #ifndef __INVERTY__
 #define __INVERTY__
 
-#include <math.h>
+// #include <math.h>
 
 const double tol    = 1e-8;
 const double IYPI = 3.141592653589793238462643383279502884197;
@@ -31,7 +30,7 @@ double   f_eval(double v, void* params);
 double  df_eval(double v, void* params);
 void   fdf_eval(double v, void* params, double* fp, double* dfp);
 
-double v_eval(double y, double tol=1e-9, int max_iter=2000);
+double v_eval(double y, double tol=1e-9, int max_iter=1000);
 
 //------------------------------------------------------------------------------
 

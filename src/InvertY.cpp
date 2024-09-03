@@ -24,7 +24,6 @@ using namespace Rcpp;
 // Windle thesis Fact 2.19
 double y_eval(double v) {
 
-  double tol = 1e-6;
   double y   = 0.0;
   double r   = sqrt(fabs(v));
 

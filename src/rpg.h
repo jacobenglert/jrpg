@@ -29,6 +29,6 @@ double rpg_devroye(int, double);
 double rpg_devroye_1(double, double, double);
 double rpg_na(double, double);
 double rpg_gamma(double, double);
-double rpg_sp(double, double, int);
+double rpg_sp(double, double, int maxiter = 200);
 
 #endif

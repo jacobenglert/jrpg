@@ -51,7 +51,7 @@ arma::vec jrpg(arma::vec b, arma::vec z) {
 
     } else if (b(i) > 13) {
 
-      y(i) = rpg_sp(b(i), z(i), 2000);
+      y(i) = rpg_sp(b(i), z(i));
 
       // if (y(i) == -999) {
       //   // Devroye method
@@ -201,7 +201,7 @@ double rpg_gamma(double b, double z) {
 
 // Saddlepoint Approximation Method
 // Usage Case: 13 < b < 170
-double rpg_sp(double b, double z, int maxiter = 2000) {
+double rpg_sp(double b, double z, int maxiter) {
 
   if (b < 1) {
     stop("Saddlepoint approximation only valid for b >= 1.");
@@ -210,7 +210,7 @@ double rpg_sp(double b, double z, int maxiter = 2000) {
   z = 0.5 * fabs(z);
 
   // Select reference points
-  double xl = y_eval(-1*z*z);   // Left point (mode of phi)
+  double xl = y_func(-1*z*z);   // Left point (mode of phi)
   double xc = 1.1 * xl;                    // Mid point
   double xr = 1.2 * xl;                    // Right point
 
@@ -230,8 +230,6 @@ double rpg_sp(double b, double z, int maxiter = 2000) {
 
   // Calculate left and right tangent lines (slopes and intercepts)
   Line Ll, Lr;
-  // tangent_to_eta(xl, z, xc, Ll);
-  // tangent_to_eta(xr, z, xc, Lr);
   Ll = get_eta_tangent(xl, z, xc);
   Lr = get_eta_tangent(xr, z, xc);
 
@@ -244,10 +242,6 @@ double rpg_sp(double b, double z, int maxiter = 2000) {
   // Constants
   double lcn = 0.5 * log(0.5 * b / MATH_PI);
   double sqrt_rho_l = sqrt(2 * rho_l);
-
-  // if (fabs(z) > 1e16 && K2xc <= 0) {
-  //   return rrtinvgauss(1.0 / sqrt_rho_l, b, xc);
-  // }
 
   double k_l, k_r, w_l, w_r, w_t, p_l;
 
@@ -267,12 +261,14 @@ double rpg_sp(double b, double z, int maxiter = 2000) {
   int iter = 0;
   double X = 2.0;
   double k = 0.0;
+
   bool go = true;
   while (go && iter < maxiter) {
 
     iter++;
 
     double phi_ev;
+
     if (R::runif(0.0,1.0) < p_l) {
 
       // Generate from right truncated inverse Gaussian
@@ -297,9 +293,6 @@ double rpg_sp(double b, double z, int maxiter = 2000) {
     if (k * R::runif(0.0,1.0) < spa) {
       go = false;
     }
-
-    // if (k * R::runif(0.0,1.0) < spa)
-    //   break;
 
   }
 
