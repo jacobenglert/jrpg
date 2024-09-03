@@ -85,7 +85,7 @@ double cos_rt(double v) {
 double sp_approx(double x, double b, double z) {
 
   double v = v_eval(x);
-  // if (v == -999) return v;
+  if (v == -999) return v;
   double u  = 0.5 * v;
   double z2 = z * z;
   double t  = u + 0.5 * z2;

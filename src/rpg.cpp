@@ -287,10 +287,8 @@ double rpg_sp(double b, double z, int maxiter) {
     }
 
     double spa = sp_approx(X, b, z);
-    /// if (spa == -999) return spa;
 
-
-    if (k * R::runif(0.0,1.0) < spa) {
+    if (k * R::runif(0.0,1.0) < spa & spa > 0) {
       go = false;
     }
 
