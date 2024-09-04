@@ -187,7 +187,7 @@ package is `jrpg()`.
 
 For some examples on how to use `jrpg` to facilitate Gibbs sampling in
 custom MCMC routines, see the vignette [Custom MCMC Samplers with
-jrpg](vignettes/mcmc-with-jrpg.html).
+jrpg](inst/doc/mcmc-with-jrpg.html).
 
 ## Installation
 
