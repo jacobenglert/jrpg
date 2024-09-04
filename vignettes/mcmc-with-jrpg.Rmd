@@ -1,8 +1,10 @@
 ---
 title: "Custom MCMC Samplers with jrpg"
+author: "Jacob Englert"
+date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{mcmc-with-jrpg}
+  %\VignetteIndexEntry{Custom MCMC Samplers with jrpg}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---

@@ -168,11 +168,11 @@ vignette(topic = 'mcmc-with-jrpg', package = 'jrpg')
 
 ## Installation
 
-You can install the development version of `jrpg` like so:
+You can install `jrpg` and (optionally) build its vignettes like so:
 
 ``` r
 install.packages('devtools')
-devtools::install_github('jacobenglert/jrpg')
+devtools::install_github('jacobenglert/jrpg', build_vignettes = TRUE)
 ```
 
 Note that installation will require compilation of `Rcpp` and
