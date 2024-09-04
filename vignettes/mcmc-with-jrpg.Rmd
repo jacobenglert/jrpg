@@ -27,7 +27,7 @@ library(mvtnorm)
 
 The following function may be used to fit a Bayesian logistic regression:
 ```{r}
-logistic_mcmc <- function(X, y, n_iter = 2000, burn_in = 1000) {
+logistic_mcmc <- function(X, y, n_iter = 1000, burn_in = 500) {
   
   # Number of observations and covariates
   N <- nrow(X)
@@ -125,7 +125,7 @@ The above plots demonstrate the true log odds-ratios are captured by the sampler
 The following function may be used to fit a Bayesian logistic regression:
 ```{r}
 # Negative Binomial MCMC sampler using Polya-Gamma latent variables
-nb_mcmc <- function(X, y, r, n_iter = 2000, burn_in = 1000) {
+nb_mcmc <- function(X, y, r, n_iter = 1000, burn_in = 500) {
   
   # Number of observations and covariates
   N <- nrow(X)
