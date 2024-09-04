@@ -24,8 +24,14 @@ double exprnd(double mu);
 double rltgamma(); // shape = 1/2, rate = 1/2, lower = MATH_PI_2
 double rltgamma(double shape, double rate, double lower);
 
-// Right-Truncated Inverse-Gamma
+// Right-Truncated Inverse Gamma
 double rrtinvgamma(double shape, double scale, double upper);
+
+// Right-Truncated Inverse Chi-Squared
+double rrtinvchi2(double scale, double upper);
+
+// Left-Truncated Gaussian (standard)
+double rltnorm(double lower);
 
 // Inverse Gaussian
 double rinvgauss(double mu); // lambda = 1
@@ -33,20 +39,9 @@ double rinvgauss(double mu, double lambda);
 double pinvgauss(double x, double mu, double lambda);
 
 // Right-Truncated Inverse Gaussian
+double rrtinvgauss(double mu); // lambda = 1, upper = 2/PI
 double rrtinvgauss(double mu, double upper); // lambda = 1
 double rrtinvgauss(double mu, double lambda, double upper);
 
-// Right-Truncated Inverse Gamma
-double rrtinvgamma(double shape, double scale, double upper);
-
-
-
-// TESTING
-double texpon_rate(double left, double rate);
-double tnorm(double left);
-double rrtinvchi2(double scale, double trunc);
-
-
-double rrtinvgamma_2(double shape, double scale, double trunc);
 
 #endif
