@@ -74,13 +74,13 @@ logistic_mcmc <- function(X, y, n_iter = 2000, burn_in = 1000) {
 }
 ```
 
-The following lines of code are used to simulate a toy dataset with `N = 500` observations.
+The following lines of code are used to simulate a toy dataset with `N = 100` observations.
 ```{r}
 # Example usage of the MCMC sampler
 set.seed(123)
 
 # Simulate some data
-N <- 500  # Number of observations
+N <- 100  # Number of observations
 p <- 5    # Number of covariates
 X <- cbind(1, matrix(rnorm(N * (p - 1)), N, p - 1))  # Design matrix with intercept
 beta_true <- c(-1, -0.5, 0, 0.5, 1)  # True coefficients
@@ -171,13 +171,13 @@ nb_mcmc <- function(X, y, r, n_iter = 2000, burn_in = 1000) {
 }
 ```
 
-The following lines of code are used to simulate a toy dataset with `N = 500` observations. Generally, the dispersion parameter will not be known and will need a separate updating step in the MCMC (this is usually done with Metroplis-Hastings). However, for simplicity we will assume it is fixed.
+The following lines of code are used to simulate a toy dataset with `N = 100` observations. Generally, the dispersion parameter will not be known and will need a separate updating step in the MCMC (this is usually done with Metroplis-Hastings). However, for simplicity we will assume it is fixed.
 ```{r}
 # Example usage of the MCMC sampler
 set.seed(123)
 
 # Simulate some data for Negative Binomial regression
-N <- 500  # Number of observations
+N <- 100  # Number of observations
 p <- 5    # Number of covariates
 X <- cbind(1, matrix(rnorm(N * (p - 1)), N, p - 1))  # Design matrix with intercept
 beta_true <- c(-1, -0.5, 0, 0.5, 1)  # True coefficients
