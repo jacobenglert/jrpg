@@ -2,18 +2,18 @@
 % Please edit documentation in R/RcppExports.R
 \name{jrpg}
 \alias{jrpg}
-\title{Multiple draw polya gamma latent variable for var c[i] with size b[i]}
+\title{Draw a vector of Polya-Gamma latent random variables with parameters `b` and `z`}
 \usage{
 jrpg(b, z)
 }
 \arguments{
-\item{b}{vector of binomial sizes}
+\item{b}{vector of parameters for $PG(b,z)$ random variable.}
 
-\item{z}{vector of parameters}
+\item{z}{vector of parameters for $PG(b,z)$ random variable.}
 }
 \value{
-Eigen::VectorXd
+column vector of \code{length(b)} containing $PG(b,z)$ random variates.
 }
 \description{
-Multiple draw polya gamma latent variable for var c[i] with size b[i]
+Draw a vector of Polya-Gamma latent random variables with parameters `b` and `z`
 }

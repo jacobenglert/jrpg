@@ -23,6 +23,30 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rpg_devroye
+double rpg_devroye(int b, double z);
+RcppExport SEXP _jrpg_rpg_devroye(SEXP bSEXP, SEXP zSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< int >::type b(bSEXP);
+    Rcpp::traits::input_parameter< double >::type z(zSEXP);
+    rcpp_result_gen = Rcpp::wrap(rpg_devroye(b, z));
+    return rcpp_result_gen;
+END_RCPP
+}
+// rpg_na
+double rpg_na(double b, double z);
+RcppExport SEXP _jrpg_rpg_na(SEXP bSEXP, SEXP zSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< double >::type z(zSEXP);
+    rcpp_result_gen = Rcpp::wrap(rpg_na(b, z));
+    return rcpp_result_gen;
+END_RCPP
+}
 // rpg_gamma
 double rpg_gamma(double b, double z);
 RcppExport SEXP _jrpg_rpg_gamma(SEXP bSEXP, SEXP zSEXP) {
@@ -35,10 +59,26 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// rpg_sp
+double rpg_sp(double b, double z, int maxiter);
+RcppExport SEXP _jrpg_rpg_sp(SEXP bSEXP, SEXP zSEXP, SEXP maxiterSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< double >::type b(bSEXP);
+    Rcpp::traits::input_parameter< double >::type z(zSEXP);
+    Rcpp::traits::input_parameter< int >::type maxiter(maxiterSEXP);
+    rcpp_result_gen = Rcpp::wrap(rpg_sp(b, z, maxiter));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_jrpg_jrpg", (DL_FUNC) &_jrpg_jrpg, 2},
+    {"_jrpg_rpg_devroye", (DL_FUNC) &_jrpg_rpg_devroye, 2},
+    {"_jrpg_rpg_na", (DL_FUNC) &_jrpg_rpg_na, 2},
     {"_jrpg_rpg_gamma", (DL_FUNC) &_jrpg_rpg_gamma, 2},
+    {"_jrpg_rpg_sp", (DL_FUNC) &_jrpg_rpg_sp, 3},
     {NULL, NULL, 0}
 };
 

@@ -1,18 +1,3 @@
-// (C) Nicholas Polson, James Scott, Jesse Windle, 2012-2019
-
-// This file is part of BayesLogit.
-
-// BayesLogit is free software: you can redistribute it and/or modify it under
-// the terms of the GNU General Public License as published by the Free Software
-// Foundation, either version 3 of the License, or (at your option) any later
-// version.
-
-// BayesLogit is distributed in the hope that it will be useful, but WITHOUT ANY
-// WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR
-// A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License along with
-// BayesLogit.  If not, see <https://www.gnu.org/licenses/>.
 
 #ifndef __RPG__
 #define __RPG__
@@ -24,11 +9,20 @@
 #include "rpg_devroye_helpers.h"
 
 
-// FCN prototypes
-double rpg_devroye(int, double);
-double rpg_devroye_1(double, double, double);
-double rpg_na(double, double);
-double rpg_gamma(double, double);
-double rpg_sp(double, double, int maxiter = 200);
+// Hybrid Sampler
+arma::vec jrpg(arma::vec b, arma::vec z);
+
+// Devroye Method
+double rpg_devroye(int b, double z);
+double rpg_devroye_1(double z, double r, double K);
+
+// Normal Approximation
+double rpg_na(double b, double z);
+
+// Sum-of-Gammas
+double rpg_gamma(double b, double z);
+
+// Saddlepoint Approximation
+double rpg_sp(double b , double z, int maxiter = 200);
 
 #endif

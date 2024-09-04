@@ -9,8 +9,11 @@
 `jrpg` is an R package that is used to facilitate the sampling of latent
 Pólya-Gamma random variables in Bayesian models with logistic
 likelihoods. This data augmentation strategy, originally proposed in
-[Polson et al. (2013)]() and [Windle (2013)](), is very useful for
-writing custom MCMC algorithms (see also this
+[Polson et al.
+(2013)](https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.829001)
+and [Windle
+(2013)](https://repositories.lib.utexas.edu/bitstream/handle/2152/21842/WINDLE-DISSERTATION-2013.pdf?sequence=1)
+is very useful for writing custom MCMC algorithms (see also this
 [post](https://gregorygundersen.com/blog/2019/09/20/polya-gamma/) by
 Gregory Gunderson and this
 [post](https://tiao.io/post/polya-gamma-bayesian-logistic-regression/)
@@ -29,7 +32,8 @@ far are:
 - [BayesLogit](https://github.com/jwindle/BayesLogit/tree/master) (TMSA
   Lab @ UIUC)
 - [pg](https://github.com/tmsalab/pg/tree/main) (Jesse Windle)
-- [pgR](https://github.com/jtipton25/pgR/tree/master) (John Tipton)
+- [pgdraw](https://cran.r-project.org/web//packages/pgdraw/index.html)
+  (Enes Makalic and Daniel F Schmidt)
 
 There are no doubt other implementations out there, but these are the
 most popular in my experience. All of the above implement some form of
@@ -71,12 +75,12 @@ chains when needed. Perhaps it will be added in the future.
 
 The hybrid sampler for this package uses the following strategy:
 
-<table style="width:96%;">
+<table style="width:92%;">
 <caption>Hybrid Sampler for <code>jrpg</code> R package</caption>
 <colgroup>
-<col style="width: 31%" />
-<col style="width: 31%" />
-<col style="width: 31%" />
+<col style="width: 30%" />
+<col style="width: 30%" />
+<col style="width: 30%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -92,6 +96,7 @@ The hybrid sampler for this package uses the following strategy:
 <td><ul>
 <li><p><code>BayesLogit</code>: Truncated Sum-of-Gammas</p></li>
 <li><p><code>pg</code>: Truncated Sum-of-Gammas</p></li>
+<li><p><code>pgdraw</code>: Devroye Method</p></li>
 <li><p><code>pgR</code>: Devroye Method</p></li>
 </ul></td>
 </tr>
@@ -106,6 +111,7 @@ otherwise</p></li>
 <li><p><code>pg</code>: Truncated Sum-of-Gammas for <span
 class="math inline"><em>b</em> ∈ 1, 2</span>; Devroye Method
 otherwise</p></li>
+<li><p><code>pgdraw</code>: Devroye Method</p></li>
 <li><p><code>pgR</code>: Devroye Method</p></li>
 </ul></td>
 </tr>
@@ -116,6 +122,7 @@ otherwise</p></li>
 <td><ul>
 <li><p><code>BayesLogit</code>: Truncated Sum-of-Gammas</p></li>
 <li><p><code>pg</code>: Truncated Sum-of-Gammas</p></li>
+<li><p><code>pgdraw</code>: N/A</p></li>
 <li><p><code>pgR</code>: Devroye Method</p></li>
 </ul></td>
 </tr>
@@ -125,7 +132,8 @@ otherwise</p></li>
 <td><ul>
 <li><p><code>BayesLogit</code>: Saddlepoint Approximation</p></li>
 <li><p><code>pg</code>: Saddlepoint Approximation</p></li>
-<li><p><code>pgR</code>: N/A</p></li>
+<li><p><code>pgdraw</code>: Devroye Method (integers only)</p></li>
+<li><p><code>pgR</code>: Devroye Method</p></li>
 </ul></td>
 </tr>
 <tr class="odd">
@@ -134,6 +142,7 @@ otherwise</p></li>
 <td><ul>
 <li><p><code>BayesLogit</code>: Normal Approximation</p></li>
 <li><p><code>pg</code>: Normal Approximation</p></li>
+<li><p><code>pgdraw</code>: Devroye Method (integers only)</p></li>
 <li><p><code>pgR</code>: Normal Approximation</p></li>
 </ul></td>
 </tr>
@@ -165,16 +174,25 @@ working C++ compiler. This will be either
 
 ## References
 
-1.  Polson, N.G., Scott, J.G. and Windle, J. (2013) ‘Bayesian Inference
+1.  Balamuta, J. J. (2021). Bayesian estimation of restricted latent
+    class models: Extending priors, link functions, and structural
+    models. University of Illinois Urbana-Champaign. Available at:
+    <https://www.ideals.illinois.edu/items/121209>.
+
+2.  Enes Makalic and Daniel Schmidt (2016). High-Dimensional Bayesian
+    Regularised Regression with the BayesReg Package. arXiv. Available
+    at: <https://arxiv.org/abs/1611.06649>.
+
+3.  Polson, N.G., Scott, J.G. and Windle, J. (2013) ‘Bayesian Inference
     for Logistic Models Using Pólya–Gamma Latent Variables’, *Journal of
     the American Statistical Association*, 108(504), pp. 1339–1349.
     Available at: <https://doi.org/10.1080/01621459.2013.829001>.
 
-2.  Windle, J. (2013) *Forecasting High-Dimensional, Time-Varying
+4.  Windle, J. (2013) *Forecasting High-Dimensional, Time-Varying
     Variance-Covariance Matrices with High-Frequency Data and Sampling
     Pólya-Gamma Random Variates for Posterior Distributions Derived from
     Logistic Likelihoods*. The University of Texas at Austin.
 
-3.  Windle, J., Polson, N.G. and Scott, J.G. (2014) ‘Sampling
+5.  Windle, J., Polson, N.G. and Scott, J.G. (2014) ‘Sampling
     Polya-Gamma random variates: alternate and approximate techniques’.
     arXiv. Available at: <http://arxiv.org/abs/1405.0506>.

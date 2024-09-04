@@ -1,26 +1,5 @@
 /**
- * This file implements the Polya-gamma sampler PG(1,z).
- * This is a C++ implementation of Algorithm 6 in PhD thesis of Jesse
- * Bennett Windle, 2013
- * URL: https://repositories.lib.utexas.edu/bitstream/handle/2152/21842/WINDLE-DISSERTATION-2013.pdf?sequence=1
- *
- * References:
- *
- *   Jesse Bennett Windle
- *   Forecasting High-Dimensional, Time-Varying Variance-Covariance Matrices
- *   with High-Frequency Data and Sampling Polya-Gamma Random Variates for
- *   Posterior Distributions Derived from Logistic Likelihoods
- *   PhD Thesis, 2013
- *
- *   Damien, P. & Walker, S. G. Sampling Truncated Normal, Beta, and Gamma Densities
- *   Journal of Computational and Graphical Statistics, 2001, 10, 206-215
- *
- *   Chung, Y.: Simulation of truncated gamma variables
- *   Korean Journal of Computational & Applied Mathematics, 1998, 5, 601-610
- *
- * (c) Copyright Enes Makalic and Daniel F Schmidt, 2018
- *
- * ! Changes for current work: Modified to work with RcppEigen
+ * This file implements a hybrid Polya-gamma sampler PG(b,z).
  */
 
 #include <RcppArmadillo.h>
@@ -31,11 +10,12 @@
 using namespace Rcpp;
 using std::pow;
 
-//' Multiple draw polya gamma latent variable for var c[i] with size b[i]
+//' Draw a vector of Polya-Gamma latent random variables with parameters `b` and `z`
 //'
-//' @param b vector of binomial sizes
-//' @param z vector of parameters
-//' @returns Eigen::VectorXd
+//' @param b vector of parameters for $PG(b,z)$ random variable.
+//' @param z vector of parameters for $PG(b,z)$ random variable.
+//' @returns column vector of \code{length(b)} containing $PG(b,z)$ random variates.
+//'
 //' @export
 // [[Rcpp::export]]
 arma::vec jrpg(arma::vec b, arma::vec z) {
@@ -52,18 +32,6 @@ arma::vec jrpg(arma::vec b, arma::vec z) {
     } else if (b(i) > 13) {
 
       y(i) = rpg_sp(b(i), z(i));
-
-      // if (y(i) == -999) {
-      //   // Devroye method
-      //   int bint = std::floor(b(i));
-      //   y(i) = 0.0;
-      //   y(i) += rpg_devroye(bint, z(i));
-      //
-      //   // Add sum of gammas to cover remainder
-      //   if (b(i) > bint) {
-      //     y(i) += rpg_gamma(b(i) - bint, z(i));
-      //   }
-      // }
 
     } else if (b(i) >= 1) {
 
@@ -93,17 +61,18 @@ arma::vec jrpg(arma::vec b, arma::vec z) {
 
 // SAMPLER FUNCTIONS
 
-// Devroye Method: Sample PG(b,z)
+// Devroye Method: Sample PG (b, z)
 // Usage Case: 1 < b < 13 and b is integer
-// [[Rcpp:export]]
+// [[Rcpp::export]]
 double rpg_devroye(int b, double z) {
 
   double sum = 0.0;
 
   double z_2 = 0.5 * fabs(z);
-  double K = z_2*z_2 / 2.0 + MATH_PI2 / 8.0;
-  double r = ratio(z_2);
+  double K = z_2*z_2 / 2.0 + MATH_PI2 / 8.0; // constant used in all draws
+  double r = ratio(z_2); // Ratio determining how to sample from mixture
 
+  // Sum b independent draws from PG(1,z/2)
   for (int j = 0; j < b; ++j) {
     sum += rpg_devroye_1(z_2, r, K);
   }
@@ -111,7 +80,7 @@ double rpg_devroye(int b, double z) {
   return sum;
 }
 
-// Devroye Method: Sample PG(1,z)
+// Devroye Method: Sample PG (1, z)
 // Based on Algorithm 6 in PhD thesis of Jesse Bennett Windle, 2013
 // URL: https://repositories.lib.utexas.edu/bitstream/handle/2152/21842/WINDLE-DISSERTATION-2013.pdf?sequence=1
 double rpg_devroye_1(double z, double r, double K) {
@@ -123,14 +92,17 @@ double rpg_devroye_1(double z, double r, double K) {
 
   // Main sampling loop; page 130 of the Windle PhD thesis
   while (1) {
+
     // Step 1: Sample X from mixture proposal distribution g(x|z)
     u = R::runif(0.0,1.0);
     if (u < r) {
-      // truncated exponential
-      X = t + exprnd(1.0) / K;
+
+      X = t + exprnd(1.0) / K; // truncated exponential
+
     } else {
-      // truncated Inverse Gaussian
-      X = rrtinvgauss(1.0 / z, t);
+
+      X = rrtinvgauss(1.0 / z); // truncated Inverse Gaussian
+
     }
 
     // Step 2: Iteratively calculate Sn(X|z), starting at S1(X|z), until U ? Sn(X|z) for an odd n or U > Sn(X|z) for an even n
@@ -164,7 +136,7 @@ double rpg_devroye_1(double z, double r, double K) {
 
 // Normal Approximation Method
 // Usage Case: b > 170
-// [[Rcpp:export]]
+// [[Rcpp::export]]
 double rpg_na(double b, double z) {
 
   double m1, m2;
@@ -186,7 +158,7 @@ double rpg_na(double b, double z) {
 
 }
 
-// Truncated Sum of Gammas Method
+// Truncated Sum-of-Gammas Method
 // Usage Case: 0 < b < 1 (and also for remainder term for 1 < b < 13)
 // [[Rcpp::export]]
 double rpg_gamma(double b, double z) {
@@ -201,6 +173,7 @@ double rpg_gamma(double b, double z) {
 
 // Saddlepoint Approximation Method
 // Usage Case: 13 < b < 170
+// [[Rcpp::export]]
 double rpg_sp(double b, double z, int maxiter) {
 
   if (b < 1) {
@@ -210,12 +183,12 @@ double rpg_sp(double b, double z, int maxiter) {
   z = 0.5 * fabs(z);
 
   // Select reference points
-  double xl = y_func(-1*z*z);   // Left point (mode of phi)
-  double xc = 1.1 * xl;                    // Mid point
-  double xr = 1.2 * xl;                    // Right point
+  double xl = y_func(-1*z*z);       // Left point (mode of phi)
+  double xc = 1.1 * xl;             // Mid point
+  double xr = 1.2 * xl;             // Right point
 
   // Calculate inflation constants
-  // I have no idea how this works - borrowed directly from BayesLogit
+  // Borrowed directly from BayesLogit
   double vxc  = v_eval(xc);
   double K2xc = 0.0;
 
@@ -245,10 +218,7 @@ double rpg_sp(double b, double z, int maxiter) {
 
   double k_l, k_r, w_l, w_r, w_t, p_l;
 
-  // (Error in BayesLogit? Changed to -0.5 * log(a) in both and + b * log(xc) in k_r)
-  // k_l = exp(0.5 * log(al) + b * (0.5 / xc + b_l - sqrt_rho_l));
   k_l = exp(0.5 * log(al) - b * sqrt_rho_l + b * b_l + 0.5 * b * 1.0 / xc);
-  // k_r = exp(lcn + 0.5 * log(ar) - b * (log(xc) - b_r + log(b * rho_r)) + lgamma(b));
   k_r = exp(0.5 * log(ar) + lcn + (- b * log(b * rho_r) + b * b_r - b * log(xc) + R::lgammafn(b)));
 
   // Weights
@@ -286,8 +256,10 @@ double rpg_sp(double b, double z, int maxiter) {
 
     }
 
+    // Calculate approximation (returns -999 when convergence fails)
     double spa = sp_approx(X, b, z);
 
+    // Accept-Reject
     if (k * R::runif(0.0,1.0) < spa & spa > 0) {
       go = false;
     }
