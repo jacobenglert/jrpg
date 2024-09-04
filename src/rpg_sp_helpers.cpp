@@ -2,7 +2,8 @@
 #include "rpg_sp_helpers.h"
 using namespace Rcpp;
 
-// Compute delta as per Lemma 14 / 2.22
+// Compute delta as per Lemma 14 (Windle 2014 arXiv) or
+// Lemma 2.22 (Windle 2013 thesis)
 FD get_delta(double x, double mid) {
 
   FD delta;
@@ -30,19 +31,18 @@ FD get_phi(double x, double z) {
   FD phi;
 
   // Determine the phi function by finding t(x)
-  double v = v_eval(x);       // 2u from paper
-  double u = 0.5 * v;         // u from paper
-  double t = u + 0.5 * z*z;   // t from paper
+  double v = v_eval(x);       // 2u from Windle paper/thesis
+  double u = 0.5 * v;         // u from Windle paper/thesis
+  double t = u + 0.5 * z*z;   // t from Windle paper/thesis
 
   // Evaluate the phi function and its derivative at t(x)
-  // phi.val = log(cosh(fabs(z))) - log(cos_rt(v)) - t * x; // Fact 9.4
-  phi.val = logcosh(z) - log_cos_rt(v) - t*x;
-  phi.der = -1.0 * t; // Fact 9.5
+  phi.val = logcosh(z) - log_cos_rt(v) - t*x; // Windle 2014 arXiv Fact 9.4
+  phi.der = -1.0 * t; // Windle 2014 arXiv Fact 9.5
 
   return phi;
 }
 
-// Calculate tangent line to eta
+// Calculate tangent line to eta at x
 Line get_eta_tangent(double x, double z, double mid) {
 
   Line L;
@@ -56,45 +56,33 @@ Line get_eta_tangent(double x, double z, double mid) {
   eta.val = phi.val - delta.val;
   eta.der = phi.der - delta.der;
 
-  // Calculate and update slope/intercept for line
+  // Calculate slope and intercept for tangent line at x
   L.slope = eta.der;
   L.intercept = eta.val - eta.der * x;
 
   return L;
 }
 
-
-
-// Compute cos(sqrt(v))
-// Windle thesis Fact 9 proof
-double cos_rt(double v) {
-  double y   = 0.0;
-  double r   = sqrt(fabs(v));
-  if (v >= 0)
-    y = cos(r);
-  else
-    y = cosh(r);
-  return y;
-}
-
-
-
-
-
-// Saddlepoint approximation given at the top of pg. 69
+// Calculate the saddlepoint approximation given at the top of pg. 69 (Windle
+// 2013 thesis) or the bottom of pg. 17 (Windle 2014 arXiv).
 double sp_approx(double x, double b, double z) {
 
+  // Find v
   double v = v_eval(x);
+
+  // Occasionally (very rarely) the starting point is bad and we don't converge.
+  // When this happens, v_eval returns -999 and we try again.
   if (v == -999) return v;
+
+  // Define constants
   double u  = 0.5 * v;
   double z2 = z * z;
   double t  = u + 0.5 * z2;
 
   // Compute phi
-  // double phi = log(cosh(z)) - log(cos_rt(v)) - t * x;
   double phi = logcosh(z) - log_cos_rt(v) - t*x;
 
-  // Compute second derivative
+  // Evaluate second derivative of K at t(x)
   double K2  = 0.0;
   if (fabs(v) >= 1e-6)
     K2 = x*x + (1-x) / v;
@@ -106,7 +94,7 @@ double sp_approx(double x, double b, double z) {
   return exp(log_spa);
 }
 
-
+// More stable log of cosh
 double logcosh(double x) {
   if (x < 0) {
     return -log(2) - x + log1pexp(2*x);
@@ -115,6 +103,8 @@ double logcosh(double x) {
   }
 }
 
+// Compute log of cos(sqrt(v))
+// Windle 2013 thesis Fact 9 proof (and take the log)
 double log_cos_rt(double v) {
   double r = sqrt(fabs(v));
   double y;
@@ -123,6 +113,8 @@ double log_cos_rt(double v) {
   return y;
 }
 
+// Compute tan(sqrt(x)) / sqrt(x)
+// Windle 2013 thesis Fact 2.19
 double y_func(double v) {
 
   double tol = 1e-6;

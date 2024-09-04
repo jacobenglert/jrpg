@@ -20,29 +20,28 @@
 #include "common.h"
 #include "InvertY.h"
 
-// Function and derivative.
+// Structure containing function and derivative
 struct FD {
   double val;
   double der;
 };
 
+// Structure containing slope and intercept of a line
 struct Line {
   double slope;
   double intercept;
 };
 
-void tangent_to_eta(double x, double z, double mid, Line& t1);
-void phi_func(double x, double xc, FD& phi);
-void delta_func(double x, double z, FD& delta);
-double cos_rt(double v);
-double sp_approx(double, double, double);
-
+// Functions for obtaining phi, delta, and line tangent to eta
+double y_func(double v);
 FD get_phi(double, double);
 FD get_delta(double, double);
 Line get_eta_tangent(double, double, double);
 
-double y_func(double v);
+// Saddlepoint approximation
+double sp_approx(double, double, double);
 
+// Other useful functions
 double logcosh(double x);
 double log_cos_rt(double v);
 
