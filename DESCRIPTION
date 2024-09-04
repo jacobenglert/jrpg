@@ -16,3 +16,7 @@ Imports:
     Rcpp
 URL: https://github.com/jacobenglert/jrpg
 BugReports: https://github.com/jacobenglert/jrpg/issues
+Suggests: 
+    knitr,
+    rmarkdown
+VignetteBuilder: knitr
