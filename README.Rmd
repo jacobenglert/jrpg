@@ -91,85 +91,90 @@ chains when needed. Perhaps it will be added in the future.
 
 The hybrid sampler for this package uses the following strategy:
 
-+---------------------+---------------------+---------------------+
-| Case                | `jrpg` Sampler      | Other               |
-|                     |                     | Implementations     |
-+=====================+=====================+=====================+
-| $0 < b < 1$         | Truncated           | -   `BayesLogit`:   |
-|                     | Sum-of-Gammas       |     Truncated       |
-|                     |                     |     Sum-of-Gammas   |
-|                     |                     |                     |
-|                     |                     | -   `pg`: Truncated |
-|                     |                     |     Sum-of-Gammas   |
-|                     |                     |                     |
-|                     |                     | -   `pgdraw`:       |
-|                     |                     |     Devroye Method  |
-|                     |                     |                     |
-|                     |                     | -   `pgR`: Devroye  |
-|                     |                     |     Method          |
-+---------------------+---------------------+---------------------+
-| $b \                | Devroye Method      | -   `BayesLogit`:   |
-| i                   |                     |     Truncated       |
-| n 1, 2, \ldots, 13$ |                     |     Sum-of-Gammas   |
-|                     |                     |     for             |
-|                     |                     |     $b \in 1,2$;    |
-|                     |                     |     Devroye Method  |
-|                     |                     |     otherwise       |
-|                     |                     |                     |
-|                     |                     | -   `pg`: Truncated |
-|                     |                     |     Sum-of-Gammas   |
-|                     |                     |     for             |
-|                     |                     |     $b \in 1,2$;    |
-|                     |                     |     Devroye Method  |
-|                     |                     |     otherwise       |
-|                     |                     |                     |
-|                     |                     | -   `pgdraw`:       |
-|                     |                     |     Devroye Method  |
-|                     |                     |                     |
-|                     |                     | -   `pgR`: Devroye  |
-|                     |                     |     Method          |
-+---------------------+---------------------+---------------------+
-| $1 < b < 13$        | Devroye Method +    | -   `BayesLogit`:   |
-| (non-integer)       | Truncated           |     Truncated       |
-|                     | Sum-of-Gammas       |     Sum-of-Gammas   |
-|                     |                     |                     |
-|                     |                     | -   `pg`: Truncated |
-|                     |                     |     Sum-of-Gammas   |
-|                     |                     |                     |
-|                     |                     | -   `pgdraw`: N/A   |
-|                     |                     |                     |
-|                     |                     | -   `pgR`: Devroye  |
-|                     |                     |     Method          |
-+---------------------+---------------------+---------------------+
-| $13 \le b < 170$    | Saddlepoint         | -   `BayesLogit`:   |
-|                     | Approximation       |     Saddlepoint     |
-|                     |                     |     Approximation   |
-|                     |                     |                     |
-|                     |                     | -   `pg`:           |
-|                     |                     |     Saddlepoint     |
-|                     |                     |     Approximation   |
-|                     |                     |                     |
-|                     |                     | -   `pgdraw`:       |
-|                     |                     |     Devroye Method  |
-|                     |                     |     (integers only) |
-|                     |                     |                     |
-|                     |                     | -   `pgR`: Devroye  |
-|                     |                     |     Method          |
-+---------------------+---------------------+---------------------+
-| $b \ge 170$         | Normal              | -   `BayesLogit`:   |
-|                     | Approximation       |     Normal          |
-|                     |                     |     Approximation   |
-|                     |                     |                     |
-|                     |                     | -   `pg`: Normal    |
-|                     |                     |     Approximation   |
-|                     |                     |                     |
-|                     |                     | -   `pgdraw`:       |
-|                     |                     |     Devroye Method  |
-|                     |                     |     (integers only) |
-|                     |                     |                     |
-|                     |                     | -   `pgR`: Normal   |
-|                     |                     |     Approximation   |
-+---------------------+---------------------+---------------------+
++--------------------+--------------------+--------------------+
+| Case               | `jrpg` Sampler     | Other              |
+|                    |                    | Implementations    |
++====================+====================+====================+
+| $0 < b < 1$        | Truncated          | -   `BayesLogit`:  |
+|                    | Sum-of-Gammas      |     Truncated      |
+|                    |                    |     Sum-of-Gammas  |
+|                    |                    |                    |
+|                    |                    | -   `pg`:          |
+|                    |                    |     Truncated      |
+|                    |                    |     Sum-of-Gammas  |
+|                    |                    |                    |
+|                    |                    | -   `pgdraw`:      |
+|                    |                    |     Devroye Method |
+|                    |                    |                    |
+|                    |                    | -   `pgR`: Devroye |
+|                    |                    |     Method         |
++--------------------+--------------------+--------------------+
+| $b \               | Devroye Method     | -   `BayesLogit`:  |
+| i                  |                    |     Truncated      |
+| n                  |                    |     Sum-of-Gammas  |
+|  1, 2, \ldots, 13$ |                    |     for            |
+|                    |                    |     $b \in 1,2$;   |
+|                    |                    |     Devroye Method |
+|                    |                    |     otherwise      |
+|                    |                    |                    |
+|                    |                    | -   `pg`:          |
+|                    |                    |     Truncated      |
+|                    |                    |     Sum-of-Gammas  |
+|                    |                    |     for            |
+|                    |                    |     $b \in 1,2$;   |
+|                    |                    |     Devroye Method |
+|                    |                    |     otherwise      |
+|                    |                    |                    |
+|                    |                    | -   `pgdraw`:      |
+|                    |                    |     Devroye Method |
+|                    |                    |                    |
+|                    |                    | -   `pgR`: Devroye |
+|                    |                    |     Method         |
++--------------------+--------------------+--------------------+
+| $1 < b < 13$       | Devroye Method +   | -   `BayesLogit`:  |
+| (non-integer)      | Truncated          |     Truncated      |
+|                    | Sum-of-Gammas      |     Sum-of-Gammas  |
+|                    |                    |                    |
+|                    |                    | -   `pg`:          |
+|                    |                    |     Truncated      |
+|                    |                    |     Sum-of-Gammas  |
+|                    |                    |                    |
+|                    |                    | -   `pgdraw`: N/A  |
+|                    |                    |                    |
+|                    |                    | -   `pgR`: Devroye |
+|                    |                    |     Method         |
++--------------------+--------------------+--------------------+
+| $13 \le b < 170$   | Saddlepoint        | -   `BayesLogit`:  |
+|                    | Approximation      |     Saddlepoint    |
+|                    |                    |     Approximation  |
+|                    |                    |                    |
+|                    |                    | -   `pg`:          |
+|                    |                    |     Saddlepoint    |
+|                    |                    |     Approximation  |
+|                    |                    |                    |
+|                    |                    | -   `pgdraw`:      |
+|                    |                    |     Devroye Method |
+|                    |                    |     (integers      |
+|                    |                    |     only)          |
+|                    |                    |                    |
+|                    |                    | -   `pgR`: Devroye |
+|                    |                    |     Method         |
++--------------------+--------------------+--------------------+
+| $b \ge 170$        | Normal             | -   `BayesLogit`:  |
+|                    | Approximation      |     Normal         |
+|                    |                    |     Approximation  |
+|                    |                    |                    |
+|                    |                    | -   `pg`: Normal   |
+|                    |                    |     Approximation  |
+|                    |                    |                    |
+|                    |                    | -   `pgdraw`:      |
+|                    |                    |     Devroye Method |
+|                    |                    |     (integers      |
+|                    |                    |     only)          |
+|                    |                    |                    |
+|                    |                    | -   `pgR`: Normal  |
+|                    |                    |     Approximation  |
++--------------------+--------------------+--------------------+
 
 : Hybrid Sampler for `jrpg` R package
 
@@ -177,6 +182,12 @@ The approach is identical to that used in the
 [PolyaGammaHybridSamplers.jl](https://github.com/wzhorton/PolyaGammaHybridSamplers.jl/tree/main)
 package. The function corresponding to the hybrid sampler is this
 package is `jrpg()`.
+
+## Examples
+
+For some examples on how to use `jrpg` to facilitate Gibbs sampling in
+custom MCMC routines, see the vignette [Custom MCMC Samplers with
+jrpg](vignettes/mcmc-with-jrpg.html).
 
 ## Installation
 

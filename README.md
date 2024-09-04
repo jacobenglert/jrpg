@@ -75,12 +75,12 @@ chains when needed. Perhaps it will be added in the future.
 
 The hybrid sampler for this package uses the following strategy:
 
-<table style="width:92%;">
+<table style="width:88%;">
 <caption>Hybrid Sampler for <code>jrpg</code> R package</caption>
 <colgroup>
-<col style="width: 30%" />
-<col style="width: 30%" />
-<col style="width: 30%" />
+<col style="width: 29%" />
+<col style="width: 29%" />
+<col style="width: 29%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -155,6 +155,12 @@ The approach is identical to that used in the
 [PolyaGammaHybridSamplers.jl](https://github.com/wzhorton/PolyaGammaHybridSamplers.jl/tree/main)
 package. The function corresponding to the hybrid sampler is this
 package is `jrpg()`.
+
+## Examples
+
+For some examples on how to use `jrpg` to facilitate Gibbs sampling in
+custom MCMC routines, see the vignette [Custom MCMC Samplers with
+jrpg](vignettes/mcmc-with-jrpg.html).
 
 ## Installation
 
