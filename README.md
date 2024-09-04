@@ -159,8 +159,8 @@ package is `jrpg()`.
 ## Examples
 
 For some examples on how to use `jrpg` to facilitate Gibbs sampling in
-custom MCMC routines, see the vignette [Custom MCMC Samplers with
-jrpg](https://github.com/jacobenglert/jrpg/blob/main/vignettes/mcmc-with-jrpg.html).
+custom MCMC routines, see the package vignette [Custom MCMC Samplers
+with jrpg](inst/doc/mcmc-with-jrpg.html).
 
 ## Installation
 
