@@ -11,6 +11,7 @@ double ratio(double z) { //, double K) {
 
   // Compute the ratio q / (p + q)
   // (derived from scratch; derivation is not in the original paper)
+  // Code modified from pgdraw R package.
   double K = z*z / 2.0 + MATH_PI2 / 8.0;
 
   double x0 =  (double)std::log(K) + K * t;
@@ -21,16 +22,6 @@ double ratio(double z) { //, double K) {
   double xa = x0 + z + R::pnorm(a, 0.0, 1.0, true, true);
 
   double p_over_q = 4.0 / MATH_PI * (std::exp(xb) + std::exp(xa));
-
-  // double K    = z*z/2.0 + MATH_PI2/8.0;
-  // double logA = (double)std::log(4.0) - MATH_LOG_PI - z;
-  // double logK = (double)std::log(K);
-  // double Kt   = K * t;
-  // double w    = (double)std::sqrt(MATH_PI_2);
-  //
-  // double logf1    = logA + R::pnorm(w*(t*z - 1),0.0,1.0,1,1) + logK + Kt;
-  // double logf2    = logA + 2*z + R::pnorm(-w*(t*z+1),0.0,1.0,1,1) + logK + Kt;
-  // double p_over_q = (double)std::exp(logf1) + (double)std::exp(logf2);
 
   double ratio = 1.0 / (1.0 + p_over_q);
 
