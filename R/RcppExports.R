@@ -20,8 +20,8 @@ rpg_na <- function(b, z) {
     .Call(`_jrpg_rpg_na`, b, z)
 }
 
-rpg_gamma <- function(b, z) {
-    .Call(`_jrpg_rpg_gamma`, b, z)
+rpg_gamma <- function(b, z, trunc) {
+    .Call(`_jrpg_rpg_gamma`, b, z, trunc)
 }
 
 rpg_sp <- function(b, z, maxiter) {

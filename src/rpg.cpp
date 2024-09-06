@@ -31,24 +31,53 @@ arma::vec jrpg(arma::vec b, arma::vec z) {
 
     } else if (b(i) > 13) {
 
+      // Saddlepoint approximation
       y(i) = rpg_sp(b(i), z(i));
 
-    } else if (b(i) >= 1) {
+      // Very rarely this fails to converge. When it does, we return a negative
+      // value and default to another method.
+      if (y(i) < 0) {
 
-      // Devroye method
-      int bint = std::floor(b(i));
-      y(i) = 0.0;
-      y(i) += rpg_devroye(bint, z(i));
+        // Rcpp::Rcout << "Warning: Saddlepoint approximation failed for b = " << b(i) << ", z = " << z(i) << ". Falling back to sum-of-gammas approximation.\n";
 
-      // Add sum of gammas to cover remainder (if necessary)
-      if (b(i) > bint) {
-        y(i) += rpg_gamma(b(i) - bint, z(i));
+        // Devroye method
+        int bint = std::floor(b(i));
+        y(i) = 0.0;
+        y(i) += rpg_devroye(bint, z(i));
+
+        // Add sum of gammas to cover remainder (if necessary)
+        if (b(i) > bint) {
+          y(i) += rpg_gamma(b(i) - bint, z(i));
+        }
+
+        // Default to sum-of-gammas
+        // y(i) = rpg_gamma(b(i), z(i), 1000);
       }
+
+    // } else if (b(i) >= 1) {
+    //
+    //   // Devroye method
+    //   int bint = std::floor(b(i));
+    //   y(i) = 0.0;
+    //   y(i) += rpg_devroye(bint, z(i));
+    //
+    //   // Add sum of gammas to cover remainder (if necessary)
+    //   if (b(i) > bint) {
+    //     y(i) += rpg_gamma(b(i) - bint, z(i));
+    //   }
+    //
+    // } else if (b(i) > 0) {
+    //
+    //   // Sum of gammas
+    //   y(i) = rpg_gamma(b(i), z(i));
 
     } else if (b(i) > 0) {
 
-      // Sum of gammas
-      y(i) = rpg_gamma(b(i), z(i));
+      if (std::floor(b(i)) == b(i)) {
+        y(i) = rpg_devroye(static_cast<int>(b(i)), z(i));
+      } else{
+        y(i) = rpg_gamma(b(i), z(i));
+      }
 
     } else if (b(i) == 0) {
       y(i) = 0.0;
@@ -161,8 +190,7 @@ double rpg_na(double b, double z) {
 // Truncated Sum-of-Gammas Method
 // Usage Case: 0 < b < 1 (and also for remainder term for 1 < b < 13)
 // [[Rcpp::export]]
-double rpg_gamma(double b, double z) {
-  int trunc = 200;
+double rpg_gamma(double b, double z, int trunc) {
   double z2 = 0.125 * z * z;
   double sum = 0.0;
   for (int i = 0; i < trunc; ++i) {
@@ -190,6 +218,9 @@ double rpg_sp(double b, double z, int maxiter) {
   // Calculate inflation constants
   // Borrowed directly from BayesLogit
   double vxc  = v_eval(xc);
+  if (vxc == -999) {
+    return vxc;
+  }
   double K2xc = 0.0;
 
   if (fabs(vxc) >= 1e-6)
@@ -258,9 +289,12 @@ double rpg_sp(double b, double z, int maxiter) {
 
     // Calculate approximation (returns -999 when convergence fails)
     double spa = sp_approx(X, b, z);
+    if (spa == -999) {
+      return spa;
+    }
 
     // Accept-Reject
-    if (k * R::runif(0.0,1.0) < spa & spa > 0) {
+    if (k * R::runif(0.0,1.0) < spa) {
       go = false;
     }
 

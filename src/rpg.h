@@ -20,7 +20,7 @@ double rpg_devroye_1(double z, double r, double K);
 double rpg_na(double b, double z);
 
 // Sum-of-Gammas
-double rpg_gamma(double b, double z);
+double rpg_gamma(double b, double z, int trunc = 200);
 
 // Saddlepoint Approximation
 double rpg_sp(double b , double z, int maxiter = 200);
