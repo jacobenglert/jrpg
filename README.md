@@ -22,7 +22,9 @@ by Louis Tiao for a blog-style overview).
 This package seeks to compile existing implementations of $PG(b,z)$
 samplers into one hybrid sampler. Recently, a Julia language
 [package](https://github.com/wzhorton/PolyaGammaHybridSamplers.jl/tree/main)
-has been created to address the same problem.
+has been created to address the same problem. Much code has been
+borrowed from these original sources (linked throughout), and at times
+modified to improve (hopefully) performance and/or readability.
 
 # Previous Implementations
 
@@ -36,12 +38,13 @@ far are:
   (Enes Makalic and Daniel F Schmidt)
 
 There are no doubt other implementations out there, but these are the
-most popular in my experience. All of the above implement some form of
-hybrid $PG(b,z)$ sampler, which automatically selects the fastest
-sampling strategy for the supplied parameters. For example, `BayesLogit`
-has the `rpg` function and `pg` has the `rpg_hybrid` function. However,
-the hybrid samplers differ between packages. This leads to certain
-implementations being “better” for different scenarios.
+most popular in my experience. `pg` uses the same underlying code as
+`BayesLogit`, but can be much faster. These implement a hybrid $PG(b,z)$
+sampler, which automatically selects the fastest sampling strategy for
+the supplied parameters. The functions which use the hybrid sampler are
+`rpg()` and `rpg_hybrid()` for `BayesLogit` and `pg`, respectively.
+`pgdraw` has a particularly fast implementation of the Devroye method,
+and so it is optimal for integer $b$.
 
 In general, there are 4 reliable sampling techniques for $PG(b,z)$
 random variables used throughout these packages:
@@ -75,12 +78,12 @@ chains when needed. Perhaps it will be added in the future.
 
 The hybrid sampler for this package uses the following strategy:
 
-<table style="width:88%;">
+<table style="width:83%;">
 <caption>Hybrid Sampler for <code>jrpg</code> R package</caption>
 <colgroup>
-<col style="width: 29%" />
-<col style="width: 29%" />
-<col style="width: 29%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
+<col style="width: 27%" />
 </colgroup>
 <thead>
 <tr class="header">
@@ -96,13 +99,13 @@ The hybrid sampler for this package uses the following strategy:
 <td><ul>
 <li><p><code>BayesLogit</code>: Truncated Sum-of-Gammas</p></li>
 <li><p><code>pg</code>: Truncated Sum-of-Gammas</p></li>
-<li><p><code>pgdraw</code>: Devroye Method</p></li>
-<li><p><code>pgR</code>: Devroye Method</p></li>
+<li><p><code>pgdraw</code>: N/A</p></li>
 </ul></td>
 </tr>
 <tr class="even">
-<td><span
-class="math inline"><em>b</em> <em>i</em><em>n</em>1, 2, …, 13</span></td>
+<td><p>$b<br />
+i n</p>
+<p>1, 2, , 13$</p></td>
 <td>Devroye Method</td>
 <td><ul>
 <li><p><code>BayesLogit</code>: Truncated Sum-of-Gammas for <span
@@ -112,18 +115,16 @@ otherwise</p></li>
 class="math inline"><em>b</em> ∈ 1, 2</span>; Devroye Method
 otherwise</p></li>
 <li><p><code>pgdraw</code>: Devroye Method</p></li>
-<li><p><code>pgR</code>: Devroye Method</p></li>
 </ul></td>
 </tr>
 <tr class="odd">
 <td><span class="math inline">1 &lt; <em>b</em> &lt; 13</span>
 (non-integer)</td>
-<td>Devroye Method + Truncated Sum-of-Gammas</td>
+<td>Truncated Sum-of-Gammas</td>
 <td><ul>
 <li><p><code>BayesLogit</code>: Truncated Sum-of-Gammas</p></li>
 <li><p><code>pg</code>: Truncated Sum-of-Gammas</p></li>
 <li><p><code>pgdraw</code>: N/A</p></li>
-<li><p><code>pgR</code>: Devroye Method</p></li>
 </ul></td>
 </tr>
 <tr class="even">
@@ -133,7 +134,6 @@ otherwise</p></li>
 <li><p><code>BayesLogit</code>: Saddlepoint Approximation</p></li>
 <li><p><code>pg</code>: Saddlepoint Approximation</p></li>
 <li><p><code>pgdraw</code>: Devroye Method (integers only)</p></li>
-<li><p><code>pgR</code>: Devroye Method</p></li>
 </ul></td>
 </tr>
 <tr class="odd">
@@ -143,7 +143,6 @@ otherwise</p></li>
 <li><p><code>BayesLogit</code>: Normal Approximation</p></li>
 <li><p><code>pg</code>: Normal Approximation</p></li>
 <li><p><code>pgdraw</code>: Devroye Method (integers only)</p></li>
-<li><p><code>pgR</code>: Normal Approximation</p></li>
 </ul></td>
 </tr>
 </tbody>
@@ -151,7 +150,25 @@ otherwise</p></li>
 
 Hybrid Sampler for `jrpg` R package
 
-The approach is identical to that used in the
+A few notes regarding our choices:
+
+1.  Case: $1 < b < 13$ (non-integer). I have examined the use of a
+    two-stage sampler for this case (Devroye method for integer
+    component + truncated sum-of-gammas for the remainder), as outlined
+    in the supplementary material of [Polson et al.
+    (2013)](https://www.tandfonline.com/doi/abs/10.1080/01621459.2013.829001).
+    While this might be slightly more accurate, it is slower than just
+    using the sum-of-gammas approach. We have not noticed any issue with
+    this choice in practice.
+
+2.  Case: $13 \le b < 170$. I have found the code which implements the
+    saddlepoint approximation in the original package `BayesLogit` (and
+    hence `pg`) to work quite well 99.99% of the time. However, on rare
+    occasions the approximation fails due to convergence issues. We have
+    added a fail-safe that will default to the two-stage sampler
+    described in the above point when this occurs.
+
+The approach is similar to that which is used in the
 [PolyaGammaHybridSamplers.jl](https://github.com/wzhorton/PolyaGammaHybridSamplers.jl/tree/main)
 package. The function corresponding to the hybrid sampler is this
 package is `jrpg()`.
